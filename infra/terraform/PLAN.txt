@@ -1,0 +1,1179 @@
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+ <= read (data resources)
+
+Terraform will perform the following actions:
+
+  # data.aws_iam_policy_document.execution_secret_read will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "execution_secret_read" {
+      + id            = (known after apply)
+      + json          = (known after apply)
+      + minified_json = (known after apply)
+
+      + statement {
+          + actions   = [
+              + "secretsmanager:GetSecretValue",
+            ]
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "ReadDbSecret"
+        }
+    }
+
+  # data.aws_iam_policy_document.notification_task will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "notification_task" {
+      + id            = (known after apply)
+      + json          = (known after apply)
+      + minified_json = (known after apply)
+
+      + statement {
+          + actions   = [
+              + "sqs:ChangeMessageVisibility",
+              + "sqs:DeleteMessage",
+              + "sqs:GetQueueAttributes",
+              + "sqs:GetQueueUrl",
+              + "sqs:ReceiveMessage",
+            ]
+          + resources = [
+              + (known after apply),
+              + (known after apply),
+            ]
+          + sid       = "ConsumeNotificationQueue"
+        }
+    }
+
+  # data.aws_iam_policy_document.scheduling_task will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "scheduling_task" {
+      + id            = (known after apply)
+      + json          = (known after apply)
+      + minified_json = (known after apply)
+
+      + statement {
+          + actions   = [
+              + "events:PutEvents",
+            ]
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "PutSchedulingEvents"
+        }
+      + statement {
+          + actions   = [
+              + "secretsmanager:GetSecretValue",
+            ]
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "ReadDbSecret"
+        }
+    }
+
+  # aws_cloudwatch_event_bus.scheduling will be created
+  + resource "aws_cloudwatch_event_bus" "scheduling" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + name     = "scheduling-bus"
+      + tags     = {
+          + "Name" = "aws-showcase-dev-scheduling-bus"
+        }
+      + tags_all = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-scheduling-bus"
+          + "Project"   = "aws-showcase"
+        }
+    }
+
+  # aws_cloudwatch_event_rule.appointment_booked will be created
+  + resource "aws_cloudwatch_event_rule" "appointment_booked" {
+      + arn            = (known after apply)
+      + description    = "Route AppointmentBooked events to the Notification queue."
+      + event_bus_name = "scheduling-bus"
+      + event_pattern  = jsonencode(
+            {
+              + detail-type = [
+                  + "AppointmentBooked",
+                ]
+            }
+        )
+      + force_destroy  = false
+      + id             = (known after apply)
+      + name           = "aws-showcase-dev-appointment-booked"
+      + name_prefix    = (known after apply)
+      + tags_all       = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Project"   = "aws-showcase"
+        }
+    }
+
+  # aws_cloudwatch_event_target.notification will be created
+  + resource "aws_cloudwatch_event_target" "notification" {
+      + arn            = (known after apply)
+      + event_bus_name = "scheduling-bus"
+      + force_destroy  = false
+      + id             = (known after apply)
+      + rule           = "aws-showcase-dev-appointment-booked"
+      + target_id      = "notification-queue"
+    }
+
+  # aws_cloudwatch_log_group.notification will be created
+  + resource "aws_cloudwatch_log_group" "notification" {
+      + arn               = (known after apply)
+      + id                = (known after apply)
+      + log_group_class   = (known after apply)
+      + name              = "/ecs/aws-showcase-dev/notification"
+      + name_prefix       = (known after apply)
+      + retention_in_days = 7
+      + skip_destroy      = false
+      + tags              = {
+          + "Name" = "aws-showcase-dev-notification-logs"
+        }
+      + tags_all          = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-notification-logs"
+          + "Project"   = "aws-showcase"
+        }
+    }
+
+  # aws_cloudwatch_log_group.scheduling will be created
+  + resource "aws_cloudwatch_log_group" "scheduling" {
+      + arn               = (known after apply)
+      + id                = (known after apply)
+      + log_group_class   = (known after apply)
+      + name              = "/ecs/aws-showcase-dev/scheduling"
+      + name_prefix       = (known after apply)
+      + retention_in_days = 7
+      + skip_destroy      = false
+      + tags              = {
+          + "Name" = "aws-showcase-dev-scheduling-logs"
+        }
+      + tags_all          = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-scheduling-logs"
+          + "Project"   = "aws-showcase"
+        }
+    }
+
+  # aws_db_instance.main will be created
+  + resource "aws_db_instance" "main" {
+      + address                               = (known after apply)
+      + allocated_storage                     = 20
+      + apply_immediately                     = true
+      + arn                                   = (known after apply)
+      + auto_minor_version_upgrade            = true
+      + availability_zone                     = (known after apply)
+      + backup_retention_period               = 0
+      + backup_target                         = (known after apply)
+      + backup_window                         = (known after apply)
+      + ca_cert_identifier                    = (known after apply)
+      + character_set_name                    = (known after apply)
+      + copy_tags_to_snapshot                 = false
+      + database_insights_mode                = (known after apply)
+      + db_name                               = "scheduling"
+      + db_subnet_group_name                  = "aws-showcase-dev-db-subnet-group"
+      + dedicated_log_volume                  = false
+      + delete_automated_backups              = true
+      + deletion_protection                   = false
+      + domain_fqdn                           = (known after apply)
+      + endpoint                              = (known after apply)
+      + engine                                = "postgres"
+      + engine_lifecycle_support              = (known after apply)
+      + engine_version                        = "16.4"
+      + engine_version_actual                 = (known after apply)
+      + hosted_zone_id                        = (known after apply)
+      + id                                    = (known after apply)
+      + identifier                            = "aws-showcase-dev-postgres"
+      + identifier_prefix                     = (known after apply)
+      + instance_class                        = "db.t3.micro"
+      + iops                                  = (known after apply)
+      + kms_key_id                            = (known after apply)
+      + latest_restorable_time                = (known after apply)
+      + license_model                         = (known after apply)
+      + listener_endpoint                     = (known after apply)
+      + maintenance_window                    = (known after apply)
+      + master_user_secret                    = (known after apply)
+      + master_user_secret_kms_key_id         = (known after apply)
+      + monitoring_interval                   = 0
+      + monitoring_role_arn                   = (known after apply)
+      + multi_az                              = false
+      + nchar_character_set_name              = (known after apply)
+      + network_type                          = (known after apply)
+      + option_group_name                     = (known after apply)
+      + parameter_group_name                  = (known after apply)
+      + password                              = (sensitive value)
+      + password_wo                           = (write-only attribute)
+      + performance_insights_enabled          = false
+      + performance_insights_kms_key_id       = (known after apply)
+      + performance_insights_retention_period = (known after apply)
+      + port                                  = (known after apply)
+      + publicly_accessible                   = false
+      + replica_mode                          = (known after apply)
+      + replicas                              = (known after apply)
+      + resource_id                           = (known after apply)
+      + skip_final_snapshot                   = true
+      + snapshot_identifier                   = (known after apply)
+      + status                                = (known after apply)
+      + storage_encrypted                     = true
+      + storage_throughput                    = (known after apply)
+      + storage_type                          = "gp3"
+      + tags                                  = {
+          + "Name" = "aws-showcase-dev-postgres"
+        }
+      + tags_all                              = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-postgres"
+          + "Project"   = "aws-showcase"
+        }
+      + timezone                              = (known after apply)
+      + username                              = "scheduling_admin"
+      + vpc_security_group_ids                = (known after apply)
+    }
+
+  # aws_db_subnet_group.main will be created
+  + resource "aws_db_subnet_group" "main" {
+      + arn                     = (known after apply)
+      + description             = "Managed by Terraform"
+      + id                      = (known after apply)
+      + name                    = "aws-showcase-dev-db-subnet-group"
+      + name_prefix             = (known after apply)
+      + subnet_ids              = (known after apply)
+      + supported_network_types = (known after apply)
+      + tags                    = {
+          + "Name" = "aws-showcase-dev-db-subnet-group"
+        }
+      + tags_all                = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-db-subnet-group"
+          + "Project"   = "aws-showcase"
+        }
+      + vpc_id                  = (known after apply)
+    }
+
+  # aws_ecr_lifecycle_policy.this["notification"] will be created
+  + resource "aws_ecr_lifecycle_policy" "this" {
+      + id          = (known after apply)
+      + policy      = jsonencode(
+            {
+              + rules = [
+                  + {
+                      + action       = {
+                          + type = "expire"
+                        }
+                      + description  = "Keep last 10 images"
+                      + rulePriority = 1
+                      + selection    = {
+                          + countNumber = 10
+                          + countType   = "imageCountMoreThan"
+                          + tagStatus   = "any"
+                        }
+                    },
+                ]
+            }
+        )
+      + registry_id = (known after apply)
+      + repository  = "aws-showcase/notification"
+    }
+
+  # aws_ecr_lifecycle_policy.this["scheduling"] will be created
+  + resource "aws_ecr_lifecycle_policy" "this" {
+      + id          = (known after apply)
+      + policy      = jsonencode(
+            {
+              + rules = [
+                  + {
+                      + action       = {
+                          + type = "expire"
+                        }
+                      + description  = "Keep last 10 images"
+                      + rulePriority = 1
+                      + selection    = {
+                          + countNumber = 10
+                          + countType   = "imageCountMoreThan"
+                          + tagStatus   = "any"
+                        }
+                    },
+                ]
+            }
+        )
+      + registry_id = (known after apply)
+      + repository  = "aws-showcase/scheduling"
+    }
+
+  # aws_ecr_repository.this["notification"] will be created
+  + resource "aws_ecr_repository" "this" {
+      + arn                  = (known after apply)
+      + force_delete         = true
+      + id                   = (known after apply)
+      + image_tag_mutability = "MUTABLE"
+      + name                 = "aws-showcase/notification"
+      + registry_id          = (known after apply)
+      + repository_url       = (known after apply)
+      + tags                 = {
+          + "Name" = "aws-showcase-dev-notification"
+        }
+      + tags_all             = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-notification"
+          + "Project"   = "aws-showcase"
+        }
+
+      + image_scanning_configuration {
+          + scan_on_push = true
+        }
+    }
+
+  # aws_ecr_repository.this["scheduling"] will be created
+  + resource "aws_ecr_repository" "this" {
+      + arn                  = (known after apply)
+      + force_delete         = true
+      + id                   = (known after apply)
+      + image_tag_mutability = "MUTABLE"
+      + name                 = "aws-showcase/scheduling"
+      + registry_id          = (known after apply)
+      + repository_url       = (known after apply)
+      + tags                 = {
+          + "Name" = "aws-showcase-dev-scheduling"
+        }
+      + tags_all             = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-scheduling"
+          + "Project"   = "aws-showcase"
+        }
+
+      + image_scanning_configuration {
+          + scan_on_push = true
+        }
+    }
+
+  # aws_ecs_cluster.main will be created
+  + resource "aws_ecs_cluster" "main" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + name     = "aws-showcase-dev-cluster"
+      + tags     = {
+          + "Name" = "aws-showcase-dev-cluster"
+        }
+      + tags_all = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-cluster"
+          + "Project"   = "aws-showcase"
+        }
+
+      + setting {
+          + name  = "containerInsights"
+          + value = "disabled"
+        }
+    }
+
+  # aws_ecs_cluster_capacity_providers.main will be created
+  + resource "aws_ecs_cluster_capacity_providers" "main" {
+      + capacity_providers = [
+          + "FARGATE",
+          + "FARGATE_SPOT",
+        ]
+      + cluster_name       = "aws-showcase-dev-cluster"
+      + id                 = (known after apply)
+
+      + default_capacity_provider_strategy {
+          + base              = 0
+          + capacity_provider = "FARGATE_SPOT"
+          + weight            = 1
+        }
+    }
+
+  # aws_iam_role.ecs_task_execution will be created
+  + resource "aws_iam_role" "ecs_task_execution" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "ecs-tasks.amazonaws.com"
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "aws-showcase-dev-ecs-task-execution"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags                  = {
+          + "Name" = "aws-showcase-dev-ecs-task-execution"
+        }
+      + tags_all              = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-ecs-task-execution"
+          + "Project"   = "aws-showcase"
+        }
+      + unique_id             = (known after apply)
+
+      + inline_policy (known after apply)
+    }
+
+  # aws_iam_role.notification_task will be created
+  + resource "aws_iam_role" "notification_task" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "ecs-tasks.amazonaws.com"
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "aws-showcase-dev-notification-task"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags                  = {
+          + "Name" = "aws-showcase-dev-notification-task"
+        }
+      + tags_all              = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-notification-task"
+          + "Project"   = "aws-showcase"
+        }
+      + unique_id             = (known after apply)
+
+      + inline_policy (known after apply)
+    }
+
+  # aws_iam_role.scheduling_task will be created
+  + resource "aws_iam_role" "scheduling_task" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "ecs-tasks.amazonaws.com"
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "aws-showcase-dev-scheduling-task"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags                  = {
+          + "Name" = "aws-showcase-dev-scheduling-task"
+        }
+      + tags_all              = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-scheduling-task"
+          + "Project"   = "aws-showcase"
+        }
+      + unique_id             = (known after apply)
+
+      + inline_policy (known after apply)
+    }
+
+  # aws_iam_role_policy.ecs_task_execution_secret will be created
+  + resource "aws_iam_role_policy" "ecs_task_execution_secret" {
+      + id          = (known after apply)
+      + name        = "aws-showcase-dev-execution-secret-read"
+      + name_prefix = (known after apply)
+      + policy      = (known after apply)
+      + role        = (known after apply)
+    }
+
+  # aws_iam_role_policy.notification_task will be created
+  + resource "aws_iam_role_policy" "notification_task" {
+      + id          = (known after apply)
+      + name        = "aws-showcase-dev-notification-task-policy"
+      + name_prefix = (known after apply)
+      + policy      = (known after apply)
+      + role        = (known after apply)
+    }
+
+  # aws_iam_role_policy.scheduling_task will be created
+  + resource "aws_iam_role_policy" "scheduling_task" {
+      + id          = (known after apply)
+      + name        = "aws-showcase-dev-scheduling-task-policy"
+      + name_prefix = (known after apply)
+      + policy      = (known after apply)
+      + role        = (known after apply)
+    }
+
+  # aws_iam_role_policy_attachment.ecs_task_execution_managed will be created
+  + resource "aws_iam_role_policy_attachment" "ecs_task_execution_managed" {
+      + id         = (known after apply)
+      + policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+      + role       = "aws-showcase-dev-ecs-task-execution"
+    }
+
+  # aws_internet_gateway.main will be created
+  + resource "aws_internet_gateway" "main" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + owner_id = (known after apply)
+      + tags     = {
+          + "Name" = "aws-showcase-dev-igw"
+        }
+      + tags_all = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-igw"
+          + "Project"   = "aws-showcase"
+        }
+      + vpc_id   = (known after apply)
+    }
+
+  # aws_lb.main will be created
+  + resource "aws_lb" "main" {
+      + arn                                                          = (known after apply)
+      + arn_suffix                                                   = (known after apply)
+      + client_keep_alive                                            = 3600
+      + desync_mitigation_mode                                       = "defensive"
+      + dns_name                                                     = (known after apply)
+      + drop_invalid_header_fields                                   = false
+      + enable_deletion_protection                                   = false
+      + enable_http2                                                 = true
+      + enable_tls_version_and_cipher_suite_headers                  = false
+      + enable_waf_fail_open                                         = false
+      + enable_xff_client_port                                       = false
+      + enable_zonal_shift                                           = false
+      + enforce_security_group_inbound_rules_on_private_link_traffic = (known after apply)
+      + id                                                           = (known after apply)
+      + idle_timeout                                                 = 60
+      + internal                                                     = false
+      + ip_address_type                                              = (known after apply)
+      + load_balancer_type                                           = "application"
+      + name                                                         = "aws-showcase-dev-alb"
+      + name_prefix                                                  = (known after apply)
+      + preserve_host_header                                         = false
+      + security_groups                                              = (known after apply)
+      + subnets                                                      = (known after apply)
+      + tags                                                         = {
+          + "Name" = "aws-showcase-dev-alb"
+        }
+      + tags_all                                                     = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-alb"
+          + "Project"   = "aws-showcase"
+        }
+      + vpc_id                                                       = (known after apply)
+      + xff_header_processing_mode                                   = "append"
+      + zone_id                                                      = (known after apply)
+
+      + subnet_mapping (known after apply)
+    }
+
+  # aws_lb_listener.http will be created
+  + resource "aws_lb_listener" "http" {
+      + arn                                                                   = (known after apply)
+      + id                                                                    = (known after apply)
+      + load_balancer_arn                                                     = (known after apply)
+      + port                                                                  = 80
+      + protocol                                                              = "HTTP"
+      + routing_http_request_x_amzn_mtls_clientcert_header_name               = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_issuer_header_name        = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_leaf_header_name          = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_serial_number_header_name = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_subject_header_name       = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_validity_header_name      = (known after apply)
+      + routing_http_request_x_amzn_tls_cipher_suite_header_name              = (known after apply)
+      + routing_http_request_x_amzn_tls_version_header_name                   = (known after apply)
+      + routing_http_response_access_control_allow_credentials_header_value   = (known after apply)
+      + routing_http_response_access_control_allow_headers_header_value       = (known after apply)
+      + routing_http_response_access_control_allow_methods_header_value       = (known after apply)
+      + routing_http_response_access_control_allow_origin_header_value        = (known after apply)
+      + routing_http_response_access_control_expose_headers_header_value      = (known after apply)
+      + routing_http_response_access_control_max_age_header_value             = (known after apply)
+      + routing_http_response_content_security_policy_header_value            = (known after apply)
+      + routing_http_response_server_enabled                                  = (known after apply)
+      + routing_http_response_strict_transport_security_header_value          = (known after apply)
+      + routing_http_response_x_content_type_options_header_value             = (known after apply)
+      + routing_http_response_x_frame_options_header_value                    = (known after apply)
+      + ssl_policy                                                            = (known after apply)
+      + tags                                                                  = {
+          + "Name" = "aws-showcase-dev-http-listener"
+        }
+      + tags_all                                                              = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-http-listener"
+          + "Project"   = "aws-showcase"
+        }
+      + tcp_idle_timeout_seconds                                              = (known after apply)
+
+      + default_action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+
+      + mutual_authentication (known after apply)
+    }
+
+  # aws_lb_target_group.scheduling will be created
+  + resource "aws_lb_target_group" "scheduling" {
+      + arn                                = (known after apply)
+      + arn_suffix                         = (known after apply)
+      + connection_termination             = (known after apply)
+      + deregistration_delay               = "300"
+      + id                                 = (known after apply)
+      + ip_address_type                    = (known after apply)
+      + lambda_multi_value_headers_enabled = false
+      + load_balancer_arns                 = (known after apply)
+      + load_balancing_algorithm_type      = (known after apply)
+      + load_balancing_anomaly_mitigation  = (known after apply)
+      + load_balancing_cross_zone_enabled  = (known after apply)
+      + name                               = "aws-showcase-dev-scheduling-tg"
+      + name_prefix                        = (known after apply)
+      + port                               = 8080
+      + preserve_client_ip                 = (known after apply)
+      + protocol                           = "HTTP"
+      + protocol_version                   = (known after apply)
+      + proxy_protocol_v2                  = false
+      + slow_start                         = 0
+      + tags                               = {
+          + "Name" = "aws-showcase-dev-scheduling-tg"
+        }
+      + tags_all                           = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-scheduling-tg"
+          + "Project"   = "aws-showcase"
+        }
+      + target_type                        = "ip"
+      + vpc_id                             = (known after apply)
+
+      + health_check {
+          + enabled             = true
+          + healthy_threshold   = 2
+          + interval            = 30
+          + matcher             = "200"
+          + path                = "/actuator/health"
+          + port                = "traffic-port"
+          + protocol            = "HTTP"
+          + timeout             = 5
+          + unhealthy_threshold = 3
+        }
+
+      + stickiness (known after apply)
+
+      + target_failover (known after apply)
+
+      + target_group_health (known after apply)
+
+      + target_health_state (known after apply)
+    }
+
+  # aws_route_table.public will be created
+  + resource "aws_route_table" "public" {
+      + arn              = (known after apply)
+      + id               = (known after apply)
+      + owner_id         = (known after apply)
+      + propagating_vgws = (known after apply)
+      + route            = [
+          + {
+              + cidr_block                 = "0.0.0.0/0"
+              + gateway_id                 = (known after apply)
+                # (11 unchanged attributes hidden)
+            },
+        ]
+      + tags             = {
+          + "Name" = "aws-showcase-dev-public-rt"
+        }
+      + tags_all         = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-public-rt"
+          + "Project"   = "aws-showcase"
+        }
+      + vpc_id           = (known after apply)
+    }
+
+  # aws_route_table_association.public[0] will be created
+  + resource "aws_route_table_association" "public" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_route_table_association.public[1] will be created
+  + resource "aws_route_table_association" "public" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_secretsmanager_secret.db will be created
+  + resource "aws_secretsmanager_secret" "db" {
+      + arn                            = (known after apply)
+      + description                    = "PostgreSQL connection credentials for the Scheduling database (dev)."
+      + force_overwrite_replica_secret = false
+      + id                             = (known after apply)
+      + name                           = "aws-showcase-dev/rds/scheduling"
+      + name_prefix                    = (known after apply)
+      + policy                         = (known after apply)
+      + recovery_window_in_days        = 0
+      + tags                           = {
+          + "Name" = "aws-showcase-dev-rds-secret"
+        }
+      + tags_all                       = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-rds-secret"
+          + "Project"   = "aws-showcase"
+        }
+
+      + replica (known after apply)
+    }
+
+  # aws_secretsmanager_secret_version.db will be created
+  + resource "aws_secretsmanager_secret_version" "db" {
+      + arn                  = (known after apply)
+      + has_secret_string_wo = (known after apply)
+      + id                   = (known after apply)
+      + secret_id            = (known after apply)
+      + secret_string        = (sensitive value)
+      + secret_string_wo     = (write-only attribute)
+      + version_id           = (known after apply)
+      + version_stages       = (known after apply)
+    }
+
+  # aws_security_group.alb will be created
+  + resource "aws_security_group" "alb" {
+      + arn                    = (known after apply)
+      + description            = "ALB: inbound 80 from internet"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "All outbound"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "HTTP from internet"
+              + from_port        = 80
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 80
+            },
+        ]
+      + name                   = "aws-showcase-dev-alb-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "aws-showcase-dev-alb-sg"
+        }
+      + tags_all               = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-alb-sg"
+          + "Project"   = "aws-showcase"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # aws_security_group.rds will be created
+  + resource "aws_security_group" "rds" {
+      + arn                    = (known after apply)
+      + description            = "RDS PostgreSQL: inbound 5432 from service SG only"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "All outbound"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = []
+              + description      = "PostgreSQL from service SG"
+              + from_port        = 5432
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 5432
+            },
+        ]
+      + name                   = "aws-showcase-dev-rds-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "aws-showcase-dev-rds-sg"
+        }
+      + tags_all               = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-rds-sg"
+          + "Project"   = "aws-showcase"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # aws_security_group.service will be created
+  + resource "aws_security_group" "service" {
+      + arn                    = (known after apply)
+      + description            = "Fargate service: inbound from ALB SG only"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "All outbound (AWS APIs over internet, no NAT)"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = []
+              + description      = "App port from ALB"
+              + from_port        = 8080
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 8080
+            },
+        ]
+      + name                   = "aws-showcase-dev-service-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "aws-showcase-dev-service-sg"
+        }
+      + tags_all               = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-service-sg"
+          + "Project"   = "aws-showcase"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # aws_sqs_queue.notification will be created
+  + resource "aws_sqs_queue" "notification" {
+      + arn                               = (known after apply)
+      + content_based_deduplication       = false
+      + deduplication_scope               = (known after apply)
+      + delay_seconds                     = 0
+      + fifo_queue                        = false
+      + fifo_throughput_limit             = (known after apply)
+      + id                                = (known after apply)
+      + kms_data_key_reuse_period_seconds = (known after apply)
+      + max_message_size                  = 262144
+      + message_retention_seconds         = 345600
+      + name                              = "notification-queue"
+      + name_prefix                       = (known after apply)
+      + policy                            = (known after apply)
+      + receive_wait_time_seconds         = 0
+      + redrive_allow_policy              = (known after apply)
+      + redrive_policy                    = (known after apply)
+      + sqs_managed_sse_enabled           = (known after apply)
+      + tags                              = {
+          + "Name" = "aws-showcase-dev-notification-queue"
+        }
+      + tags_all                          = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-notification-queue"
+          + "Project"   = "aws-showcase"
+        }
+      + url                               = (known after apply)
+      + visibility_timeout_seconds        = 30
+    }
+
+  # aws_sqs_queue.notification_dlq will be created
+  + resource "aws_sqs_queue" "notification_dlq" {
+      + arn                               = (known after apply)
+      + content_based_deduplication       = false
+      + deduplication_scope               = (known after apply)
+      + delay_seconds                     = 0
+      + fifo_queue                        = false
+      + fifo_throughput_limit             = (known after apply)
+      + id                                = (known after apply)
+      + kms_data_key_reuse_period_seconds = (known after apply)
+      + max_message_size                  = 262144
+      + message_retention_seconds         = 1209600
+      + name                              = "notification-dlq"
+      + name_prefix                       = (known after apply)
+      + policy                            = (known after apply)
+      + receive_wait_time_seconds         = 0
+      + redrive_allow_policy              = (known after apply)
+      + redrive_policy                    = (known after apply)
+      + sqs_managed_sse_enabled           = (known after apply)
+      + tags                              = {
+          + "Name" = "aws-showcase-dev-notification-dlq"
+        }
+      + tags_all                          = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-notification-dlq"
+          + "Project"   = "aws-showcase"
+        }
+      + url                               = (known after apply)
+      + visibility_timeout_seconds        = 30
+    }
+
+  # aws_sqs_queue_policy.notification will be created
+  + resource "aws_sqs_queue_policy" "notification" {
+      + id        = (known after apply)
+      + policy    = (known after apply)
+      + queue_url = (known after apply)
+    }
+
+  # aws_subnet.public[0] will be created
+  + resource "aws_subnet" "public" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-2a"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.0.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = true
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Name" = "aws-showcase-dev-public-us-east-2a"
+          + "Tier" = "public"
+        }
+      + tags_all                                       = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-public-us-east-2a"
+          + "Project"   = "aws-showcase"
+          + "Tier"      = "public"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # aws_subnet.public[1] will be created
+  + resource "aws_subnet" "public" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-2b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.1.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = true
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Name" = "aws-showcase-dev-public-us-east-2b"
+          + "Tier" = "public"
+        }
+      + tags_all                                       = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-public-us-east-2b"
+          + "Project"   = "aws-showcase"
+          + "Tier"      = "public"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # aws_vpc.main will be created
+  + resource "aws_vpc" "main" {
+      + arn                                  = (known after apply)
+      + cidr_block                           = "10.0.0.0/16"
+      + default_network_acl_id               = (known after apply)
+      + default_route_table_id               = (known after apply)
+      + default_security_group_id            = (known after apply)
+      + dhcp_options_id                      = (known after apply)
+      + enable_dns_hostnames                 = true
+      + enable_dns_support                   = true
+      + enable_network_address_usage_metrics = (known after apply)
+      + id                                   = (known after apply)
+      + instance_tenancy                     = "default"
+      + ipv6_association_id                  = (known after apply)
+      + ipv6_cidr_block                      = (known after apply)
+      + ipv6_cidr_block_network_border_group = (known after apply)
+      + main_route_table_id                  = (known after apply)
+      + owner_id                             = (known after apply)
+      + tags                                 = {
+          + "Name" = "aws-showcase-dev-vpc"
+        }
+      + tags_all                             = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-vpc"
+          + "Project"   = "aws-showcase"
+        }
+    }
+
+  # aws_vpc_endpoint.s3 will be created
+  + resource "aws_vpc_endpoint" "s3" {
+      + arn                   = (known after apply)
+      + cidr_blocks           = (known after apply)
+      + dns_entry             = (known after apply)
+      + id                    = (known after apply)
+      + ip_address_type       = (known after apply)
+      + network_interface_ids = (known after apply)
+      + owner_id              = (known after apply)
+      + policy                = (known after apply)
+      + prefix_list_id        = (known after apply)
+      + private_dns_enabled   = (known after apply)
+      + requester_managed     = (known after apply)
+      + route_table_ids       = (known after apply)
+      + security_group_ids    = (known after apply)
+      + service_name          = "com.amazonaws.us-east-2.s3"
+      + service_region        = (known after apply)
+      + state                 = (known after apply)
+      + subnet_ids            = (known after apply)
+      + tags                  = {
+          + "Name" = "aws-showcase-dev-s3-gateway-endpoint"
+        }
+      + tags_all              = {
+          + "Env"       = "dev"
+          + "ManagedBy" = "terraform"
+          + "Name"      = "aws-showcase-dev-s3-gateway-endpoint"
+          + "Project"   = "aws-showcase"
+        }
+      + vpc_endpoint_type     = "Gateway"
+      + vpc_id                = (known after apply)
+
+      + dns_options (known after apply)
+
+      + subnet_configuration (known after apply)
+    }
+
+  # random_password.db will be created
+  + resource "random_password" "db" {
+      + bcrypt_hash      = (sensitive value)
+      + id               = (known after apply)
+      + length           = 24
+      + lower            = true
+      + min_lower        = 0
+      + min_numeric      = 0
+      + min_special      = 0
+      + min_upper        = 0
+      + number           = true
+      + numeric          = true
+      + override_special = "!#$%*-_=+"
+      + result           = (sensitive value)
+      + special          = true
+      + upper            = true
+    }
+
+Plan: 40 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + alb_arn                     = (known after apply)
+  + alb_dns_name                = (known after apply)
+  + alb_listener_arn            = (known after apply)
+  + alb_security_group_id       = (known after apply)
+  + db_secret_arn               = (known after apply)
+  + ecr_repository_urls         = {
+      + notification = (known after apply)
+      + scheduling   = (known after apply)
+    }
+  + ecs_cluster_arn             = (known after apply)
+  + ecs_cluster_name            = "aws-showcase-dev-cluster"
+  + ecs_task_execution_role_arn = (known after apply)
+  + eventbridge_bus_arn         = (known after apply)
+  + eventbridge_bus_name        = "scheduling-bus"
+  + notification_dlq_arn        = (known after apply)
+  + notification_dlq_url        = (known after apply)
+  + notification_log_group_name = "/ecs/aws-showcase-dev/notification"
+  + notification_queue_arn      = (known after apply)
+  + notification_queue_url      = (known after apply)
+  + notification_task_role_arn  = (known after apply)
+  + public_subnet_ids           = [
+      + (known after apply),
+      + (known after apply),
+    ]
+  + rds_address                 = (known after apply)
+  + rds_endpoint                = (known after apply)
+  + rds_security_group_id       = (known after apply)
+  + scheduling_log_group_name   = "/ecs/aws-showcase-dev/scheduling"
+  + scheduling_target_group_arn = (known after apply)
+  + scheduling_task_role_arn    = (known after apply)
+  + service_security_group_id   = (known after apply)
+  + vpc_id                      = (known after apply)
