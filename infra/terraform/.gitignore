@@ -1,0 +1,19 @@
+# Local Terraform state, plugin cache, and generated plans
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Saved plan artifacts (binary) — the readable PLAN.txt is committed instead
+tfplan
+*.tfplan
+
+# Sensitive var files
+*.tfvars
+*.tfvars.json
+!example.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
