@@ -41,9 +41,9 @@ variable "db_username" {
 }
 
 variable "db_engine_version" {
-  description = "PostgreSQL engine version."
+  description = "PostgreSQL engine version (must be an available RDS minor version in the target region; check `aws rds describe-db-engine-versions --engine postgres`)."
   type        = string
-  default     = "16.4"
+  default     = "16.14"
 }
 
 variable "log_retention_days" {
