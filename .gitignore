@@ -1,0 +1,20 @@
+# Java / Maven build output
+target/
+*.class
+
+# Terraform local state & plan artifacts
+.terraform/
+*.tfstate
+*.tfstate.*
+tfplan
+tfplan*
+crash.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
